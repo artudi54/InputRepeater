@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>OptionsDialog</class>
+ <widget class="QDialog" name="OptionsDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>449</width>
+    <height>321</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Options</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <widget class="QGroupBox" name="optionBox">
+     <property name="title">
+      <string>Options</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="0">
+       <layout class="QGridLayout" name="optionLayout">
+        <item row="7" column="1">
+         <widget class="QKeySequenceEdit" name="keyStartReplay"/>
+        </item>
+        <item row="8" column="1">
+         <widget class="QKeySequenceEdit" name="keyStopReplay"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QCheckBox" name="checkShowPopupMessages">
+          <property name="text">
+           <string>Show popup messages on start/stop</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="labelStopRecordHotkey">
+          <property name="text">
+           <string>Stop record hotkey: (must be single key)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="labelStartRecordHotkey">
+          <property name="text">
+           <string>Start record hotkey:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QCheckBox" name="checkAutoSaveNewRecords">
+          <property name="text">
+           <string>Automatically save new records
+to records directory</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QCheckBox" name="checkPlaySound">
+          <property name="text">
+           <string>Play sound pn start/stop</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QCheckBox" name="checkRemoveFirstWaitTime">
+          <property name="text">
+           <string>Automatically remove wait time
+before first action</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <widget class="QComboBox" name="comboStopRecord"/>
+        </item>
+        <item row="5" column="1">
+         <widget class="QKeySequenceEdit" name="keyStartRecord"/>
+        </item>
+        <item row="8" column="0">
+         <widget class="QLabel" name="labelStopReplayHotkey">
+          <property name="text">
+           <string>Stop replay hotkey:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLabel" name="labelStartReplayHotkey">
+          <property name="text">
+           <string>Start replay hotkey:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QPushButton" name="buttonOpenDir">
+          <property name="text">
+           <string>Open records directory</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="checkHideToTray">
+          <property name="text">
+           <string>Hide to tray on record/replay</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QCheckBox" name="checkOpenLastLoaded">
+          <property name="text">
+           <string>Automatically open last loaded file</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="0">
+       <layout class="QHBoxLayout" name="buttonLayout">
+        <item>
+         <widget class="QPushButton" name="buttonOK">
+          <property name="text">
+           <string>OK</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="buttonCancel">
+          <property name="text">
+           <string>Cancel</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="buttonDefaults">
+          <property name="text">
+           <string>Defaults</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <tabstops>
+  <tabstop>checkShowPopupMessages</tabstop>
+  <tabstop>checkPlaySound</tabstop>
+  <tabstop>checkHideToTray</tabstop>
+  <tabstop>checkOpenLastLoaded</tabstop>
+  <tabstop>checkRemoveFirstWaitTime</tabstop>
+  <tabstop>checkAutoSaveNewRecords</tabstop>
+  <tabstop>buttonOpenDir</tabstop>
+  <tabstop>keyStartRecord</tabstop>
+  <tabstop>comboStopRecord</tabstop>
+  <tabstop>keyStartReplay</tabstop>
+  <tabstop>keyStopReplay</tabstop>
+  <tabstop>buttonOK</tabstop>
+  <tabstop>buttonCancel</tabstop>
+  <tabstop>buttonDefaults</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>
