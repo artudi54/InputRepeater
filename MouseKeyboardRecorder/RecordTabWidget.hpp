@@ -11,6 +11,11 @@
 class RecordTabWidget : public QWidget {
 	Q_OBJECT
 public:
+	enum class RecordResult {
+		Ok,
+		SaveFailed,
+		NoActionRecorded
+	};
 	explicit RecordTabWidget(QWidget *parent = nullptr);
 	virtual ~RecordTabWidget();
 
@@ -19,7 +24,7 @@ public:
 	QString get_title() const;
 signals:
 	void record_started();
-	void record_stopped();
+	void record_stopped(RecordResult result);
 	void record_updated();
 	void record_time_changed(std::chrono::microseconds totalTime);
 	void record_unloaded();

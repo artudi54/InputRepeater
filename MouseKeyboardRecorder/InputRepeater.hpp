@@ -13,18 +13,15 @@ public:
 private slots:
 	void set_hotkeys();
 	void record_started();
-	void record_stopped();
+	void record_stopped(RecordTabWidget::RecordResult result);
 	void record_updated();
 	void record_unloaded();
 	void replay_started();
 	void replay_stopped();
 
 	void auto_disable_hotkey();
-	void hotkey_record_start();
-	void hotkey_record_stop();
-	void hothey_replay_start();
-	void hotkey_replay_stop();
 private:
+	void single_play(const QUrl &media);
 	void load_options();
 	void connect_signals();
 	Ui::InputRepeater ui;

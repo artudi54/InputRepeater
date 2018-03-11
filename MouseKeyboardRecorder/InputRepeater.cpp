@@ -29,7 +29,8 @@ void InputRepeater::closeEvent(QCloseEvent * event) {
 }
 
 void InputRepeater::record_started() {
-	qDebug() << "record";
+	if (options.play_sound())
+		this->single_play(QUrl(QStringLiteral("qrc:/Resources/StartSound.aif")));
 	ui.statusBar->set_status(QStringLiteral("Recording"), QStringLiteral("red"));
 
 	recordStartHotkey.setRegistered(false);
@@ -40,8 +41,9 @@ void InputRepeater::record_started() {
 	ui.replayTabWidget->setEnabled(false);
 }
 
-void InputRepeater::record_stopped() {
-	qDebug() << "stop record";
+void InputRepeater::record_stopped(RecordTabWidget::RecordResult result) {
+	if (options.play_sound())
+		this->single_play(QUrl(QStringLiteral("qrc:/Resources/StopSound.aif")));
 	ui.statusBar->set_status(QStringLiteral("Recording finished"), QStringLiteral("green"));
 	
 	recordStartHotkey.setRegistered(true);
@@ -52,6 +54,18 @@ void InputRepeater::record_stopped() {
 	ui.replayTabWidget->setEnabled(true);
 
 	this->record_updated();
+	if (result == RecordTabWidget::RecordResult::SaveFailed)
+		QMessageBox::warning(
+			this,
+			QStringLiteral("Saving error"),
+			QStringLiteral("Could not save record to specified file")
+		);
+	else if (result == RecordTabWidget::RecordResult::NoActionRecorded)
+		QMessageBox::information(
+			this,
+			QStringLiteral("Recording failed"),
+			QStringLiteral("No action was recorded. No record created")
+		);
 }
 
 void InputRepeater::record_updated() {
@@ -66,7 +80,9 @@ void InputRepeater::record_unloaded() {
 }
 
 void InputRepeater::replay_started() {
-	qDebug() << "replay";
+	if (options.play_sound())
+		this->single_play(QUrl(QStringLiteral("qrc:/Resources/StartSound.aif")));
+	ui.statusBar->set_status(QStringLiteral("Replaying"), QStringLiteral("red"));
 	recordStartHotkey.setRegistered(false);
 	replayStartHotkey.setRegistered(false);
 	recordStopHotkey.setRegistered(false);
@@ -74,7 +90,9 @@ void InputRepeater::replay_started() {
 }
 
 void InputRepeater::replay_stopped() {
-	qDebug() << "stop replay";
+	if (options.play_sound())
+		this->single_play(QUrl(QStringLiteral("qrc:/Resources/StopSound.aif")));
+	ui.statusBar->set_status(QStringLiteral("Replaying finished"), QStringLiteral("green"));
 	recordStartHotkey.setRegistered(true);
 	replayStartHotkey.setRegistered(true);
 	recordStopHotkey.setRegistered(false);
@@ -85,28 +103,6 @@ void InputRepeater::auto_disable_hotkey() {
 	QHotkey *hotkey = dynamic_cast<QHotkey*>(this->sender());
 	if (hotkey != nullptr)
 		hotkey->setRegistered(false);
-}
-
-void InputRepeater::hotkey_record_start() {
-	auto_disable_hotkey();
-	QTimer::singleShot(QApplication::keyboardInputInterval(), [this] {ui.recordTabWidget->start_recording(); });
-	//ui.recordTabWidget->start_recording();
-}
-
-void InputRepeater::hotkey_record_stop() {
-	auto_disable_hotkey();
-	ui.recordTabWidget->stop_recording();
-
-}
-
-void InputRepeater::hothey_replay_start() {
-	auto_disable_hotkey();
-	ui.replayTabWidget->start_playing();
-}
-
-void InputRepeater::hotkey_replay_stop() {
-	auto_disable_hotkey();
-	ui.replayTabWidget->stop_playing();
 }
 
 void InputRepeater::set_hotkeys() {
@@ -122,13 +118,13 @@ void InputRepeater::set_hotkeys() {
 
 
 	if (recordStopHotkey.shortcut().isEmpty())
-		recordStopHotkey.setNativeShortcut(
-			QHotkey::NativeShortcut(options.record_stop_hotkey()),
+		recordStopHotkey.setShortcut(
+			options.record_stop_hotkey() - VK_F1 + Qt::Key_F1,
 			false
 		);
 	else
-		recordStopHotkey.setNativeShortcut(
-			QHotkey::NativeShortcut(options.record_stop_hotkey()),
+		recordStopHotkey.setShortcut(
+			options.record_stop_hotkey() - VK_F1 + Qt::Key_F1,
 			recordStopHotkey.isRegistered()
 		);
 
@@ -152,6 +148,19 @@ void InputRepeater::set_hotkeys() {
 			options.replay_stop_hotkey(),
 			replayStopHotkey.isRegistered()
 		);
+}
+
+void InputRepeater::single_play(const QUrl & media) {
+	QMediaPlayer *player = new QMediaPlayer(this);
+	player->setAudioRole(QAudio::MusicRole);
+	player->setMedia(QMediaContent(media));
+
+	QObject::connect(
+		player, &QMediaPlayer::stateChanged, player,
+		[player](QMediaPlayer::State state) {
+			if (state == QMediaPlayer::StoppedState) player->deleteLater();
+	});
+	player->play();
 }
 
 void InputRepeater::load_options() {
@@ -184,10 +193,15 @@ void InputRepeater::connect_signals() {
 	QObject::connect(ui.recordTabWidget, &RecordTabWidget::record_time_changed, ui.statusBar, QOverload<chrono::microseconds>::of(&InputRepeaterStatusBar::set_time));
 	QObject::connect(ui.replayTabWidget, &ReplayTabWidget::replay_time_changed, ui.statusBar, QOverload<chrono::microseconds, chrono::microseconds>::of(&InputRepeaterStatusBar::set_time));
 
-	QObject::connect(&recordStartHotkey, &QHotkey::activated, this, &InputRepeater::hotkey_record_start);
-	QObject::connect(&recordStopHotkey, &QHotkey::activated, this, &InputRepeater::hotkey_record_stop);
-	QObject::connect(&replayStartHotkey, &QHotkey::activated, this, &InputRepeater::hothey_replay_start);
-	QObject::connect(&replayStopHotkey, &QHotkey::activated, this, &InputRepeater::hotkey_replay_stop);
+	QObject::connect(&recordStartHotkey, &QHotkey::activated, this, &InputRepeater::auto_disable_hotkey);
+	QObject::connect(&recordStopHotkey, &QHotkey::activated, this, &InputRepeater::auto_disable_hotkey);
+	QObject::connect(&replayStartHotkey, &QHotkey::activated, this, &InputRepeater::auto_disable_hotkey);
+	QObject::connect(&replayStopHotkey, &QHotkey::activated, this, &InputRepeater::auto_disable_hotkey);
+
+	QObject::connect(&recordStartHotkey, &QHotkey::activated, ui.recordTabWidget, [tab = ui.recordTabWidget]{ QTimer::singleShot(QApplication::keyboardInputInterval(), tab, &RecordTabWidget::start_recording); });
+	QObject::connect(&recordStopHotkey, &QHotkey::activated, ui.recordTabWidget, &RecordTabWidget::stop_recording);
+	QObject::connect(&replayStartHotkey, &QHotkey::activated, ui.replayTabWidget, &ReplayTabWidget::start_playing);
+	QObject::connect(&replayStopHotkey, &QHotkey::activated, ui.replayTabWidget, &ReplayTabWidget::stop_playing);
 }
 
 

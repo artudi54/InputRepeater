@@ -68,7 +68,9 @@ bool InputRecorder::start_recording() {
 	return true;
 }
 
+#include <iostream>
 void InputRecorder::stop_recording() {
+	std::cout << "stopping\n";
 	if (mouseHook != nullptr) {
 		::UnhookWindowsHookEx(mouseHook);
 		mouseHook = nullptr;
@@ -157,7 +159,6 @@ LRESULT InputRecorder::keyboard_proc(int code, WPARAM wParam, LPARAM lParam) {
 		} else
 			this->stop_recording();
 	}
-
 	return CallNextHookEx(nullptr, code, wParam, lParam);
 }
 

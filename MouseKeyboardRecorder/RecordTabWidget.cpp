@@ -73,6 +73,7 @@ void RecordTabWidget::start_recording() {
 }
 
 void RecordTabWidget::stop_recording() {
+	RecordResult result = RecordResult::Ok;
 	InputRecorder &recorder = InputRecorder::get_instance();
 	recorder.stop_recording();
 
@@ -84,11 +85,7 @@ void RecordTabWidget::stop_recording() {
 				this->set_record_info(newPathInfo);
 				ui.labelRecordStatus->setText(QStringLiteral("Saved to file"));
 			} else {
-				QMessageBox::warning(
-					this,
-					QStringLiteral("Saving error"),
-					QStringLiteral("Could not save record to specified file")
-				);
+				result = RecordResult::SaveFailed;
 				ui.labelRecordStatus->setText(QStringLiteral("In memory"));
 			}
 		} else
@@ -102,12 +99,8 @@ void RecordTabWidget::stop_recording() {
 	
 	
 	else {
+		result = RecordResult::NoActionRecorded;
 		ui.labelRecordStatus->setText(QStringLiteral("Unloaded"));
-		QMessageBox::information(
-			this,
-			QStringLiteral("Recording failed"),
-			QStringLiteral("No action was recorded. No record created")
-		);
 	}
 
 
@@ -117,7 +110,7 @@ void RecordTabWidget::stop_recording() {
 
 	notifierTimer.stop();
 	emit record_time_changed(record.total_time());
-	emit record_stopped();
+	emit record_stopped(result);
 }
 
 

@@ -10,7 +10,8 @@ ReplayTabWidget::ReplayTabWidget(QWidget *parent)
 	, player()
 	, notifierTimer(this)
 	, start()
-	, repeatCount(0) {
+	, repeatCount(0)
+	, speed(1.0) {
 	ui.setupUi(this);
 	this->connect_signals();
 }
@@ -29,7 +30,10 @@ void ReplayTabWidget::set_options(Options & options) {
 void ReplayTabWidget::set_record(const InputRecord & record) {
 	this->stop_playing();
 	player.set_record(record);
-	this->set_time(0us, record.total_time());
+	this->set_time(
+		0us,
+		chrono::duration_cast<chrono::microseconds>(record.total_time() / speed)
+	);
 	ui.buttonReplay->setEnabled(!record.empty());
 }
 
@@ -59,7 +63,7 @@ void ReplayTabWidget::start_playing() {
 			repeatCount = ui.spinRepeatCount->value();
 
 		speed = ui.spinSpeed->value();
-		player.start_playing(ui.spinSpeed->value());
+		player.start_playing(speed);
 		start = chrono::steady_clock::now();
 		notifierTimer.start((20ms).count());
 		emit replay_started();
@@ -73,7 +77,10 @@ void ReplayTabWidget::stop_playing() {
 		ui.buttonStop->setEnabled(false);
 		notifierTimer.stop();
 		player.stop_playing();
-		emit replay_time_changed(player.get_record().total_time(), player.get_record().total_time());
+		emit replay_time_changed(
+			chrono::duration_cast<chrono::microseconds>(player.get_record().total_time() / speed),
+			chrono::duration_cast<chrono::microseconds>(player.get_record().total_time() / speed)
+		);
 		emit replay_stopped();
 	}
 }
@@ -81,21 +88,24 @@ void ReplayTabWidget::stop_playing() {
 void ReplayTabWidget::notifier_procedure() {
 	chrono::steady_clock::time_point current = chrono::steady_clock::now();
 
-	if (current - start > player.get_record().total_time()) {
-		if (!repeatCount--) {
+	if (current - start > player.get_record().total_time() / speed) {
+		if (!--repeatCount) {
 			player.wait_until_finished();
 			this->stop_playing();
 		} else {
 			player.start_playing(speed);
 			start = chrono::steady_clock::now();
-			emit replay_time_changed(0us, player.get_record().total_time());
+			emit replay_time_changed(
+				0us,
+				chrono::duration_cast<chrono::microseconds>(player.get_record().total_time() / speed)
+			);
 		}
 		return;
 	}
 
 	emit replay_time_changed(
-		chrono::duration_cast<chrono::microseconds>(start - current),
-		player.get_record().total_time()
+		chrono::duration_cast<chrono::microseconds>(current - start),
+		chrono::duration_cast<chrono::microseconds>(player.get_record().total_time() / speed)
 	);
 }
 
@@ -111,5 +121,9 @@ void ReplayTabWidget::connect_signals() {
 }
 
 void ReplayTabWidget::set_time(std::chrono::microseconds currentTime, std::chrono::microseconds totalTime) {
-	ui.labelTime->setText(time_util::double_printable_time(currentTime, totalTime));
+	qDebug() << "current - " << currentTime.count();
+	ui.labelTime->setText(time_util::double_printable_time(
+		chrono::duration_cast<chrono::microseconds>(currentTime * speed),
+		chrono::duration_cast<chrono::microseconds>(totalTime * speed)
+	));
 }
