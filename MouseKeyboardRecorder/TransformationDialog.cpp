@@ -129,6 +129,8 @@ void TransformationDialog::set_record_type(InputRecord::RecordType recordType) {
 
 	ui.checkMouseOnly->setEnabled(typeConversionEnabled);
 	ui.checkKeyboardOnly->setEnabled(typeConversionEnabled);
+
+	ui.labelRecordType->setText("Record type: <i>" + recordTypeStr + "</i>");
 }
 
 

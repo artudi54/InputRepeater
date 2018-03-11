@@ -19,7 +19,7 @@
      <item>
       <widget class="QLabel" name="labelRecordType">
        <property name="text">
-        <string>Record type : &lt;i&gt;None&lt;/i&gt;</string>
+        <string>Record type: &lt;i&gt;None&lt;/i&gt;</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
