@@ -16,8 +16,8 @@ public:
 	RECORD_EXPORT explicit InputPlayer(const InputRecord &record = InputRecord());
 	RECORD_EXPORT ~InputPlayer();
 	RECORD_EXPORT void set_record(const InputRecord &record);
-	RECORD_EXPORT void set_record(InputRecord &&record);
-	RECORD_EXPORT const InputRecord& get_record() const;
+	RECORD_EXPORT void set_record(InputRecord &&record) noexcept;
+	RECORD_EXPORT const InputRecord& get_record() const noexcept;
 
 	RECORD_EXPORT void start_playing(double speed);
 	RECORD_EXPORT void stop_playing();
@@ -25,6 +25,7 @@ public:
 	RECORD_EXPORT bool is_playing() const;
 private:
 	RECORD_EXPORT void playback_procedure(double speed);
+
 	InputRecord record;
 	std::promise<void> playStartEvent;
 	std::future<void> playingStopEventFuture;

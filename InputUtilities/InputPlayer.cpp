@@ -1,5 +1,4 @@
 #include "InputPlayer.hpp"
-#include <chrono>
 namespace chrono = std::chrono;
 using namespace std::literals;
 
@@ -21,12 +20,12 @@ void InputPlayer::set_record(const InputRecord& record) {
 	this->record = record;
 }
 
-void InputPlayer::set_record(InputRecord&& record) {
+void InputPlayer::set_record(InputRecord&& record) noexcept {
 	this->record = std::move(record);
 }
 
 
-const InputRecord & InputPlayer::get_record() const {
+const InputRecord & InputPlayer::get_record() const noexcept {
 	return record;
 }
 
@@ -38,7 +37,7 @@ void InputPlayer::start_playing(double speed) {
 	if (isPlaying)
 		this->stop_playing();
 	playingStopEventFuture = std::async(&InputPlayer::playback_procedure, this, speed);
-	playStartEvent.get_future().get();
+	playStartEvent.get_future().get(); //sync with start
 	playStartEvent = std::promise<void>();
 }
 
@@ -87,8 +86,8 @@ void InputPlayer::playback_procedure(double speed) {
 		std::this_thread::sleep_for(
 			std::clamp(
 				awaitedTime - pt,
-				chrono::duration_cast<chrono::steady_clock::duration>(0ms),
-				chrono::duration_cast<chrono::steady_clock::duration>(1ms)
+				chrono::steady_clock::duration(0ms),
+				chrono::steady_clock::duration(1ms)
 			)
 		);
 	}

@@ -38,32 +38,33 @@ public:
 		INPUT input;
 	};
 	
-	RECORD_EXPORT InputRecord() = default;
+	RECORD_EXPORT InputRecord() noexcept = default;
 	RECORD_EXPORT InputRecord(const InputRecord&) = default;
-	RECORD_EXPORT InputRecord(InputRecord&&) = default;
+	RECORD_EXPORT InputRecord(InputRecord&&) noexcept = default;
 	RECORD_EXPORT InputRecord& operator=(const InputRecord&) = default;
-	RECORD_EXPORT InputRecord& operator=(InputRecord&&) = default;
+	RECORD_EXPORT InputRecord& operator=(InputRecord&&) noexcept = default;
 
-	RECORD_EXPORT InputRecord(RecordType recordType);
+	RECORD_EXPORT InputRecord(RecordType recordType) noexcept;
 	RECORD_EXPORT ~InputRecord();
 
-	RECORD_EXPORT RecordType get_record_type() const;
-	RECORD_EXPORT void set_record_type(RecordType recordType);
+	RECORD_EXPORT RecordType get_record_type() const noexcept;
+	RECORD_EXPORT void set_record_type(RecordType recordType) noexcept;
 	
 	RECORD_EXPORT InputAction& add(const InputAction &action);
 	RECORD_EXPORT InputAction& add(std::chrono::microseconds time, const INPUT &input);
-	RECORD_EXPORT void clear();
-	RECORD_EXPORT bool empty() const;
-	RECORD_EXPORT const std::vector<InputAction>& get_actions() const;
-	RECORD_EXPORT void reserve(std::size_t size);
-	RECORD_EXPORT std::size_t size() const;
+
+	RECORD_EXPORT void clear() noexcept;
+	RECORD_EXPORT bool empty() const noexcept;
+	RECORD_EXPORT const std::vector<InputAction>& get_actions() const noexcept;
+	RECORD_EXPORT void reserve(std::size_t capacity);
+	RECORD_EXPORT std::size_t size() const noexcept;
 	
-	RECORD_EXPORT std::chrono::microseconds total_time() const;
+	RECORD_EXPORT std::chrono::microseconds total_time() const noexcept;
 
 	RECORD_EXPORT void make_mouse_only();
 	RECORD_EXPORT void make_keyboard_only();
-	RECORD_EXPORT void remove_wait_time_before_first_action();
-	RECORD_EXPORT void change_speed(double speed);
+	RECORD_EXPORT void remove_first_wait_time() noexcept;
+	RECORD_EXPORT void change_speed(double speed) noexcept;
 private:
 	RecordType recordType;
 	std::vector<InputAction> actions;

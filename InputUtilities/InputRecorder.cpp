@@ -9,7 +9,7 @@ using namespace std::literals;
 
 
 
-InputRecorder & InputRecorder::get_instance() {
+InputRecorder & InputRecorder::get_instance() noexcept {
 	static InputRecorder recorder;
 	return recorder;
 }
@@ -18,14 +18,14 @@ InputRecorder & InputRecorder::get_instance() {
 
 
 
-void InputRecorder::set_record_type(InputRecord::RecordType type) {
+void InputRecorder::set_record_type(InputRecord::RecordType type) noexcept {
 	if (this->is_recording())
 		this->stop_recording();
 	record.clear();
 	record.set_record_type(type);
 }
 
-InputRecord::RecordType InputRecorder::get_record_type() const {
+InputRecord::RecordType InputRecorder::get_record_type() const noexcept {
 	return record.get_record_type();
 }
 
@@ -34,11 +34,11 @@ InputRecord::RecordType InputRecorder::get_record_type() const {
 
 
 
-void InputRecorder::set_stop_key(int stopKey) {
+void InputRecorder::set_stop_key(unsigned stopKey) noexcept {
 	this->stopKey = stopKey;
 }
 
-int InputRecorder::get_stop_key() const {
+unsigned InputRecorder::get_stop_key() const noexcept {
 	return stopKey;
 }
 
@@ -47,11 +47,12 @@ int InputRecorder::get_stop_key() const {
 
 
 
-bool InputRecorder::start_recording() {
+bool InputRecorder::start_recording() noexcept {
 	bool success = true;
 	this->stop_recording();
-	begin = chrono::steady_clock::now();
 	record.clear();
+	timeBegin = chrono::steady_clock::now();
+
 	if ((int)record.get_record_type() & (int)InputRecord::RecordType::Keyboard) {
 		keyboardHook = SetWindowsHookExW(WH_KEYBOARD_LL, &InputRecorder::keyboard_proc_static, instanceHandle, 0);
 		success &= keyboardHook != nullptr;
@@ -68,22 +69,21 @@ bool InputRecorder::start_recording() {
 	return true;
 }
 
-#include <iostream>
-void InputRecorder::stop_recording() {
-	std::cout << "stopping\n";
+
+void InputRecorder::stop_recording() noexcept {
 	if (mouseHook != nullptr) {
 		::UnhookWindowsHookEx(mouseHook);
 		mouseHook = nullptr;
 	}
 	if (keyboardHook != nullptr) {
 		::UnhookWindowsHookEx(keyboardHook);
-		this->fix_unreleased_keys();
 		keyboardHook = nullptr;
+		this->fix_unreleased_keys();
 	}
 }
 
 
-bool InputRecorder::is_recording() const {
+bool InputRecorder::is_recording() const noexcept {
 	return mouseHook != nullptr || keyboardHook != nullptr;
 }
 
@@ -92,11 +92,11 @@ bool InputRecorder::is_recording() const {
 
 
 
-const InputRecord& InputRecorder::get_record() const {
+const InputRecord& InputRecorder::get_record() const noexcept {
 	return record;
 }
 
-InputRecord&& InputRecorder::retrieve_record() {
+InputRecord&& InputRecorder::retrieve_record() noexcept {
 	return std::move(record);
 }
 
@@ -104,12 +104,12 @@ InputRecord&& InputRecorder::retrieve_record() {
 
 
 
-InputRecorder::InputRecorder()
+InputRecorder::InputRecorder() noexcept
 	: instanceHandle(::GetModuleHandleW(nullptr))
 	, mouseHook(nullptr)
 	, keyboardHook(nullptr)
 	, stopKey(0)
-	, begin()
+	, timeBegin()
 	, record(InputRecord::RecordType::None) {}
 
 
@@ -130,15 +130,15 @@ LRESULT  InputRecorder::mouse_proc(int code, WPARAM wParam, LPARAM lParam) {
 		input.type = INPUT_MOUSE;
 		this->convert_hookinfo_to_inputinfo(wParam, mouseAction, input.mi);
 		record.add(
-			chrono::duration_cast<chrono::microseconds>(
-				current - begin
-				),
+			chrono::duration_cast<chrono::microseconds>(current - timeBegin),
 			input
 		);
-		begin = current;
+		timeBegin = current;
 	}
 	return CallNextHookEx(nullptr, code, wParam, lParam);
 }
+
+
 
 LRESULT InputRecorder::keyboard_proc(int code, WPARAM wParam, LPARAM lParam) {
 	if (code == HC_ACTION) {
@@ -149,13 +149,11 @@ LRESULT InputRecorder::keyboard_proc(int code, WPARAM wParam, LPARAM lParam) {
 			input.type = INPUT_KEYBOARD;
 			this->convert_hookinfo_to_inputinfo(wParam, keyPress, input.ki);
 			InputRecord::InputAction& action = record.add(
-				chrono::duration_cast<chrono::microseconds>(
-					current - begin
-					),
+				chrono::duration_cast<chrono::microseconds>(current - timeBegin),
 				input
 			);
 			this->update_keymap_info(wParam, action);
-			begin = current;
+			timeBegin = current;
 		} else
 			this->stop_recording();
 	}
@@ -167,8 +165,7 @@ LRESULT InputRecorder::keyboard_proc(int code, WPARAM wParam, LPARAM lParam) {
 
 
 
-
-void InputRecorder::convert_hookinfo_to_inputinfo(std::uintptr_t keyPressType, KBDLLHOOKSTRUCT &keyHook, KEYBDINPUT &keyInput) {
+void InputRecorder::convert_hookinfo_to_inputinfo(std::uintptr_t keyPressType, KBDLLHOOKSTRUCT &keyHook, KEYBDINPUT &keyInput) noexcept {
 	keyInput.time = 0;
 	keyInput.dwExtraInfo = 0;
 
@@ -176,6 +173,8 @@ void InputRecorder::convert_hookinfo_to_inputinfo(std::uintptr_t keyPressType, K
 	keyInput.wScan = static_cast<WORD>(keyHook.scanCode);
 
 	keyInput.dwFlags = 0;
+	if (keyInput.wScan != 0)
+		keyInput.dwFlags |= KEYEVENTF_SCANCODE;
 	if (keyPressType == WM_KEYUP || keyPressType == WM_SYSKEYUP)
 		keyInput.dwFlags |= KEYEVENTF_KEYUP;
 	if (keyHook.flags & LLKHF_EXTENDED)
@@ -184,7 +183,7 @@ void InputRecorder::convert_hookinfo_to_inputinfo(std::uintptr_t keyPressType, K
 
 
 
-void InputRecorder::convert_hookinfo_to_inputinfo(std::uintptr_t mouseMoveType, MSLLHOOKSTRUCT &mouseHook, MOUSEINPUT &mouseInput) {
+void InputRecorder::convert_hookinfo_to_inputinfo(std::uintptr_t mouseMoveType, MSLLHOOKSTRUCT &mouseHook, MOUSEINPUT &mouseInput) noexcept {
 	static const int RES_X = ::GetSystemMetrics(SM_CXSCREEN), RES_Y = GetSystemMetrics(SM_CYSCREEN);
 	static const int MAX_COORD = 65535;
 	
@@ -240,9 +239,11 @@ void InputRecorder::convert_hookinfo_to_inputinfo(std::uintptr_t mouseMoveType, 
 }
 
 
+
+
 bool InputRecorder::validate_key_press(std::uintptr_t keyPressType, const KBDLLHOOKSTRUCT &keyPress) {
 	if (keyPress.vkCode == stopKey) {
-		if (keysPressed.empty())
+		if (keysPressed.empty() && keyPressType != WM_KEYUP)
 			return false;
 		if (keysPressed.size() == 1) {
 			auto it = keysPressed.find(stopKey);

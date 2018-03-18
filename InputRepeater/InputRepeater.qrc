@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Resources/StartSound.aif</file>
+        <file>Resources/StopSound.aif</file>
+        <file>Resources/AboutIcon.png</file>
+        <file>Resources/CloseIcon.png</file>
+        <file>Resources/OptionsIcon.png</file>
+        <file>Resources/PlayIcon.png</file>
+        <file>Resources/RecordIcon.png</file>
+        <file>Resources/StopIcon.png</file>
+        <file>Resources/ProgramIcon.ico</file>
+    </qresource>
+</RCC>

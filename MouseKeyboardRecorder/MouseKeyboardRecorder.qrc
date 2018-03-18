@@ -1,6 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>Resources/StartSound.aif</file>
-        <file>Resources/StopSound.aif</file>
-    </qresource>
-</RCC>
