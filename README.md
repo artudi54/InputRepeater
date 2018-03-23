@@ -11,7 +11,7 @@ InputRepeater is a windows program letting you record and replay input from mous
 - program configuration (user notification, tray icon, etc.)
 
 ## Releases
-[Windows x64](https://github.com/artudi54/InputRepeater/releases/download/1.0_windows/InputRepeater.rar "Windows x64)
+[Windows x64](https://github.com/artudi54/InputRepeater/releases/download/1.0_windows/InputRepeater.rar "Windows x64")
 
 
 ## About Project
